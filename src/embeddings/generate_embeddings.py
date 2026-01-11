@@ -46,7 +46,3 @@ def generate_embedding(text: str) -> list[float]:
     raise RuntimeError(f"Unexpected HF response format: {data}")
 
 
-if __name__ == "__main__":
-    sample_text = "Today is a sunny day and I will get some ice cream."
-    embedding = generate_embedding(sample_text)
-    print(f"Embedding length: {len(embedding)}")

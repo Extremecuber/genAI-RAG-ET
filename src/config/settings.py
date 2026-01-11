@@ -18,3 +18,5 @@ HF_HEADERS = {
     "Authorization": f"Bearer {HF_API_TOKEN}",
     "Content-Type": "application/json",
 }
+
+EMBEDDING_DIMENSION = 384
