@@ -1,5 +1,7 @@
 import faiss
 import numpy as np
+import os
+import pickle
 from typing import List, Dict, Any, Tuple
 
 from src.config.settings import EMBEDDING_DIMENSION
@@ -84,3 +86,35 @@ class FaissVectorStore:
             results.append(entry)
 
         return results
+
+
+    def save(self, path: str) -> None:
+        """
+        Persist FAISS index and aligned metadata to disk.
+        """
+
+        os.makedirs(path, exist_ok=True)
+
+        faiss.write_index(
+            self.index,
+            os.path.join(path, "index.faiss"),
+        )
+
+        with open(os.path.join(path, "metadata.pkl"), "wb") as f:
+            pickle.dump(self.metadata, f)
+
+    def load(self, path: str) -> None:
+        """
+        Load FAISS index and aligned metadata from disk.
+        """
+
+        index_path = os.path.join(path, "index.faiss")
+        metadata_path = os.path.join(path, "metadata.pkl")
+
+        if not os.path.exists(index_path) or not os.path.exists(metadata_path):
+            raise FileNotFoundError("Persisted FAISS store not found")
+
+        self.index = faiss.read_index(index_path)
+
+        with open(metadata_path, "rb") as f:
+            self.metadata = pickle.load(f)
