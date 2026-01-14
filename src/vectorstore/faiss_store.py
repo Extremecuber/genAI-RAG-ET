@@ -103,7 +103,9 @@ class FaissVectorStore:
         with open(os.path.join(path, "metadata.pkl"), "wb") as f:
             pickle.dump(self.metadata, f)
 
-    def load(self, path: str) -> None:
+
+    @classmethod
+    def load(cls, path: str) -> "FaissVectorStore":
         """
         Load FAISS index and aligned metadata from disk.
         """
@@ -114,7 +116,10 @@ class FaissVectorStore:
         if not os.path.exists(index_path) or not os.path.exists(metadata_path):
             raise FileNotFoundError("Persisted FAISS store not found")
 
-        self.index = faiss.read_index(index_path)
+        store = cls()
+        store.index = faiss.read_index(index_path)
 
         with open(metadata_path, "rb") as f:
-            self.metadata = pickle.load(f)
+            store.metadata = pickle.load(f)
+
+        return store
