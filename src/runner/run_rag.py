@@ -5,13 +5,18 @@ from src.reranking.cross_encoder import CrossEncoderReranker
 from src.llm.ollama_client import OllamaClient
 from src.prompts.rag_prompt import build_rag_prompt
 
-PERSIST_PATH = "vectorstore"
+import os
+
+PERSIST_PATH = "storage/faiss_store"
 
 
 def main():
     # 1. Load vector store
-    store = FaissVectorStore()
-    store.load(PERSIST_PATH)
+    store = FaissVectorStore().load(PERSIST_PATH)
+
+    print("ABS PERSIST PATH:", os.path.abspath(PERSIST_PATH))
+
+    print(f"FAISS index size: {store.index.ntotal}")
 
     # 2. Initialize components
     assembler = ContextAssembler(max_chars=3000)

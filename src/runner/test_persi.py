@@ -4,13 +4,16 @@ from src.embeddings.generate_embeddings import generate_embedding
 from src.vectorstore.faiss_store import FaissVectorStore
 
 
+import os
+
 PERSIST_PATH = "storage/faiss_store"
 
 
 def ingest_and_save() -> None:
     store = FaissVectorStore()
 
-    documents = load_text_documents("data")
+    documents = load_text_documents("data/ipl/")
+    print(f"Loaded documents: {len(documents)}")
 
     for doc in documents:
         chunks = chunk_text(
@@ -18,6 +21,7 @@ def ingest_and_save() -> None:
             chunk_size=200,
             overlap=50,
         )
+        print(f"Doc {doc['doc_id']} chunks: {len(chunks)}")
 
         for chunk_id, chunk in enumerate(chunks):
             embedding = generate_embedding(chunk)
@@ -33,7 +37,10 @@ def ingest_and_save() -> None:
                 metadata=metadata,
             )
 
+    print("ABS PERSIST PATH:", os.path.abspath(PERSIST_PATH))
     store.save(PERSIST_PATH)
+
+    
     print("Store persisted to disk.")
 
 

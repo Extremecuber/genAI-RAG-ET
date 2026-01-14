@@ -52,6 +52,7 @@ class FaissVectorStore:
         # Order matters: FAISS add + metadata append must stay aligned
         self.index.add(vector)
         self.metadata.append(metadata)
+        
 
     def search(
         self,
