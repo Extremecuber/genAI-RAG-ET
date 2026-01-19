@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from src.ingestion.text_loader import load_text_documents
+from src.ingestion.loader import load_documents
 from src.chunking.text_chunker import chunk_text
 from src.embeddings.generate_embeddings import generate_embedding
 from src.vectorstore.faiss_store import FaissVectorStore
@@ -11,14 +11,14 @@ from src.llm.ollama_client import OllamaClient
 from src.prompts.rag_prompt import build_rag_prompt
 
 PERSIST_PATH = "storage/faiss_store"
-DATA_PATH = "data/ipl/"
+DATA_PATH = "data/formattest"
 
 
 def ingest() -> None:
     print("Starting ingestion...")
 
     store = FaissVectorStore()
-    documents = load_text_documents(DATA_PATH)
+    documents = load_documents(DATA_PATH)
 
     print(f"Loaded {len(documents)} documents")
 

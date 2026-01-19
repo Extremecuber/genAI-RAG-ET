@@ -1,21 +1,16 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict
 
 
-def load_text_documents(directory: str) -> List[Dict[str, str]]:
-    base_path = Path(directory)
+def load_txt(path: str, doc_id: str) -> Dict[str, str]:
+    file_path = Path(path)
 
-    if not base_path.exists() or not base_path.is_dir():
-        raise ValueError(f"Invalid directory: {directory}")
+    if not file_path.exists():
+        raise FileNotFoundError(path)
 
-    documents: List[Dict[str, str]] = []
+    text = file_path.read_text(encoding="utf-8")
 
-    for file_path in base_path.glob("*.txt"):
-        text = file_path.read_text(encoding="utf-8")
-
-        documents.append({
-            "doc_id": file_path.stem,
-            "text": text,
-        })
-
-    return documents
+    return {
+        "doc_id": doc_id,
+        "text": text,
+    }
