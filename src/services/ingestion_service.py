@@ -13,7 +13,6 @@ PERSIST_PATH = "storage/faiss_store"
 
 def ingest_files(file_paths: List[Path]) -> int:
     store = FaissVectorStore()
-
     total_chunks = 0
 
     for path in file_paths:
@@ -27,13 +26,14 @@ def ingest_files(file_paths: List[Path]) -> int:
         elif ext == ".docx":
             doc = load_docx(str(path), doc_id)
         else:
+            print(f"[WARN] Unsupported file type: {path.name}")
             continue
 
         print(
-    f"[DEBUG] {doc['doc_id']} | "
-    f"text_length={len(doc['text'])} | "
-    f"preview={doc['text'][:200]!r}"
-)
+            f"[DEBUG] {doc['doc_id']} | "
+            f"text_length={len(doc['text'])} | "
+            f"preview={doc['text'][:200]!r}"
+        )
 
         chunks = chunk_text(
             text=doc["text"],
@@ -41,8 +41,21 @@ def ingest_files(file_paths: List[Path]) -> int:
             overlap=50,
         )
 
+        total_chunks += len(chunks)
+
         for chunk_id, chunk in enumerate(chunks):
             embedding = generate_embedding(chunk)
 
+            store.add(
+                embedding=embedding,
+                metadata={
+                    "doc_id": doc_id,
+                    "chunk_id": chunk_id,
+                    "text": chunk,
+                },
+            )
+
     store.save(PERSIST_PATH)
+    print(f"[INGEST] Stored {total_chunks} chunks")
+
     return total_chunks

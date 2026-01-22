@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>RAG Document QA</title>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 60px auto;
+            background: #020617;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        p {
+            color: #9ca3af;
+        }
+
+        .section {
+            margin-top: 32px;
+        }
+
+        input[type="file"] {
+            margin-top: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            margin-top: 12px;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 16px;
+            padding: 10px 18px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+
+        button:disabled {
+            background: #334155;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .spinner {
+            margin-top: 12px;
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #334155;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .answer {
+            margin-top: 20px;
+            padding: 16px;
+            background: #020617;
+            border-radius: 8px;
+            border: 1px solid #1e293b;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Document Question Answering</h1>
+    <p>Upload documents and ask questions based on their content.</p>
+
+    <!-- Upload Section -->
+    <div class="section">
+        <h2>1. Upload Documents</h2>
+        <input type="file" id="files" multiple />
+        <br />
+        <button onclick="uploadFiles()">Upload</button>
+
+        <div id="uploadStatus" class="status"></div>
+    </div>
+
+    <!-- Query Section -->
+    <div class="section">
+        <h2>2. Ask a Question</h2>
+        <textarea id="queryInput" placeholder="Enter your question..." disabled></textarea>
+        <br />
+        <button id="askBtn" onclick="askQuestion()" disabled>Ask</button>
+
+        <div id="answer" class="answer" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    const uploadStatus = document.getElementById("uploadStatus");
+    const queryInput = document.getElementById("queryInput");
+    const askBtn = document.getElementById("askBtn");
+    const answerBox = document.getElementById("answer");
+
+    async function uploadFiles() {
+        const filesInput = document.getElementById("files");
+        const files = filesInput.files;
+
+        if (!files.length) {
+            alert("Please select at least one file.");
+            return;
+        }
+
+        uploadStatus.innerHTML = '<div class="spinner"></div> Uploading documents...';
+
+        const formData = new FormData();
+        for (const file of files) {
+            formData.append("files", file);
+        }
+
+        try {
+            const res = await fetch("http://localhost:8000/ingest/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!res.ok) {
+                throw new Error("Upload failed");
+            }
+
+            uploadStatus.innerHTML = "Documents uploaded successfully.";
+            queryInput.disabled = false;
+            askBtn.disabled = false;
+
+        } catch (err) {
+            uploadStatus.innerHTML = "Upload failed. Check server logs.";
+        }
+    }
+
+    async function askQuestion() {
+        const query = queryInput.value.trim();
+        if (!query) return;
+
+        answerBox.style.display = "none";
+        askBtn.disabled = true;
+
+        try {
+            const res = await fetch("http://localhost:8000/query/query", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query: query })  // ✅ FIXED PAYLOAD
+            });
+
+            const data = await res.json();
+            answerBox.innerText = data.answer || "No answer returned.";
+            answerBox.style.display = "block";
+
+        } catch (err) {
+            answerBox.innerText = "Query failed.";
+            answerBox.style.display = "block";
+        } finally {
+            askBtn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
